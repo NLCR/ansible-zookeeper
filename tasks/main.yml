@@ -1,2 +1,74 @@
 ---
 # tasks file for NLCR.zookeeper
+
+- name: get ZooKeeper {{ zookeeper_version }}
+  get_url:
+    url: '{{ zookeeper_url }}'
+    dest: '/tmp/{{ zookeeper_url | basename }}'
+  tags: solr
+
+- name: 'Extract ZooKeeper {{ zookeeper_version }} archive to {{ zookeeper_dir }}'
+  unarchive:
+    src: '/tmp/{{ zookeeper_url | basename }}'
+    dest: /opt/
+    remote_src: True
+  tags: solr
+
+- name: 'ZooKeeper group: {{ zookeeper_group }} exists.'
+  group:
+    name: '{{ zookeeper_group }}'
+    system: yes
+
+- name: 'ZooKeeper user: {{ zookeeper_user }} exists.'
+  user:
+    name: '{{ zookeeper_user }}'
+    group: '{{ zookeeper_group }}'
+    system: yes
+
+- name: ZooKeeper directories are configured.
+  file:
+    path: '{{ item.path }}'
+    state: '{{ item.state | default("directory") }}'
+    src: '{{ item.src | default(omit) }}'
+    owner: '{{ zookeeper_user }}'
+    group: '{{ zookeeper_group }}'
+  with_items:
+    - path: '{{ zookeeper_dir }}'
+    - path: '{{ zookeeper_data }}'
+    - path: '{{ zookeeper_logs }}'
+    - path: '{{ zookeeper_home }}'
+      src: '{{ zookeeper_dir }}'
+      state: link
+
+- name: myid with configured hosts is ready.
+  template:
+    src: myid.j2
+    dest: '{{ zookeeper_home }}/myid'
+    owner: '{{ zookeeper_user }}'
+    group: '{{ zookeeper_group }}'
+    force: '{{ zookeeper_force_myid | default("no") }}'
+  notify:
+    - restart zookeeper
+
+- name: Zookeeper configuration is ready zoo.cfg.
+  template:
+    src: zoo.cfg.j2
+    dest: '{{ zookeeper_home }}/conf/zoo.cfg'
+    owner: '{{ zookeeper_user }}'
+    group: '{{ zookeeper_group }}'
+  notify:
+    - restart zookeeper
+
+- name: Zookeeper's bin dir is part of PATH
+  copy:
+    content: "export PATH=$PATH:{{ zookeeper_home }}/bin"
+    dest: /etc/profile.d/zookeeper_path.sh
+    mode: 755
+
+- name: Systemd service is ready
+  template:
+    src: zookeeper.service.j2
+    dest: /lib/systemd/system/zookeeper.service
+  notify:
+    - reload systemctl daemon
+    - restart zookeeper

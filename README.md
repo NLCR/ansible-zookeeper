@@ -1,7 +1,7 @@
-Role Name
+Zookeeper
 =========
 
-A brief description of the role goes here.
+Initial commit, not fully working
 
 Requirements
 ------------

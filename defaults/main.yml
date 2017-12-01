@@ -1,2 +1,24 @@
 ---
 # defaults file for NLCR.zookeeper
+zookeeper_version: 3.4.10
+zookeeper_url: 'https://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz'
+zookeeper_dir: '/opt/zookeeper-{{ zookeeper_version }}'
+
+# Process environment
+zookeeper_home: /opt/zookeeper
+zookeeper_data: /var/zookeeper/data
+zookeeper_logs: /var/zookeeper/logs
+zookeeper_user: zookeeper
+zookeeper_group: zookeeper
+
+# Configuration
+zookeeper_tick_time: 2000
+zookeeper_port: 2181
+zookeeper_init_limit: 5
+zookeeper_sync_limit: 2
+zookeeper_autopurge_purgeInterval: 0
+zookeeper_autopurge_snapRetainCount: 10
+
+zookeeper_hosts:
+  - host: "{{inventory_hostname}}" # the machine running
+    id: 1

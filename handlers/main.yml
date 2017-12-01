@@ -1,2 +1,10 @@
 ---
 # handlers file for NLCR.zookeeper
+
+- name: reload systemctl daemon
+  command: systemctl daemon-reload
+
+- name: restart zookeeper
+  service:
+    name: zookeeper
+    state: restarted
